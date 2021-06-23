@@ -12,6 +12,7 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -21,6 +22,8 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
+
+migrate = Migrate(app, db)
 # TODO: connect to a local postgresql database [DONE]
 
 
@@ -68,9 +71,6 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'))
     venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'))
     start_time = db.Column(db.DateTime)
-
-db.create_all()
-
 
 
 #----------------------------------------------------------------------------#
@@ -238,16 +238,18 @@ def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
   # TODO: modify data to be the data object returned from db insertion [Question]
 
-  name = request.form['name']
-  city = request.form['city']
-  state = request.form['state']
-  address = request.form['address']
-  phone = request.form['phone']
-  image_link = request.form['image_link']
-  # genres = request.form['genres']
-  facebook_link = request.form['facebook_link']
-  # website_link = request.form['website_link']
-  # seeking_description = request.form['seeking_description']
+  formV = VenueForm(request.form)
+
+  name = formV.name.validate()
+  city = formV.city.validate()
+  state = formV.state.validate()
+  address = formV.address.validate()
+  phone = formV.phone.validate()
+  image_link = formV.image_link.validate()
+  # genres = form.genres.validate()
+  facebook_link = formV.facebook_link.validate()
+  # website_link = form.website_link.validate
+  # seeking_description = form.seeking_description.validate
 
 
   venue = Venue(name = name,
