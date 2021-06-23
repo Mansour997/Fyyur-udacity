@@ -21,7 +21,7 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-# TODO: connect to a local postgresql database [Question]
+# TODO: connect to a local postgresql database [DONE]
 
 
 
@@ -30,7 +30,7 @@ db = SQLAlchemy(app)
 #----------------------------------------------------------------------------#
 
 class Venue(db.Model):
-    __tablename__ = 'Venue'
+    __tablename__ = 'venues'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -45,7 +45,7 @@ class Venue(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
-    __tablename__ = 'Artist'
+    __tablename__ = 'artists'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -58,9 +58,20 @@ class Artist(db.Model):
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
-# db.create_all() [Question for my self]
+# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.[DONE]
+
+class Show(db.Model):
+    __tablename__ = 'shows'
+
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artists.id'))
+    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id'))
+    start_time = db.Column(db.DateTime)
+
+db.create_all()
+
+
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -225,7 +236,34 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  # TODO: modify data to be the data object returned from db insertion [Question]
+
+  name = request.form['name']
+  city = request.form['city']
+  state = request.form['state']
+  address = request.form['address']
+  phone = request.form['phone']
+  image_link = request.form['image_link']
+  # genres = request.form['genres']
+  facebook_link = request.form['facebook_link']
+  # website_link = request.form['website_link']
+  # seeking_description = request.form['seeking_description']
+
+
+  venue = Venue(name = name,
+                city = city,
+                state = state,
+                address = address,
+                phone = phone,
+                image_link = image_link,
+              #  genres = genres,
+                facebook_link = facebook_link)
+              #  website_link = website_link
+              #  seeking_description =seeking_description)
+  db.session.add(venue)
+  db.session.commit()
+  
+
 
   # on successful db insert, flash success
   flash('Venue ' + request.form['name'] + ' was successfully listed!')
