@@ -15,6 +15,9 @@ from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
 from flask_migrate import Migrate
+from datetime import datetime
+from sqlalchemy import exc
+import sys
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -109,8 +112,70 @@ def index():
   return render_template('pages/home.html')
 
 
+
+
+
+#  Helper functions
+#  ----------------------------------------------------------------
+
+def linearsearch(arr, x):
+   for i in range(len(arr)):
+      if arr[i] == x:
+         return i
+   return -1
+
+
+def binarySearch(arr, x):
+    print('inside binary')
+    print(arr)
+    print(x)
+    print(len(arr))
+    if len(arr) == 1:
+      if arr[0] == x:
+        print('first if first if')
+        return 5 
+      else:
+        print('first if first else')
+        return -1
+    
+    if (len(arr) == 2):
+      if (arr[0] == x or arr[1] == x):
+        print('second if first if')
+        return 5 
+      else:
+        print('second if first else')
+        return -1
+        
+    l = 0
+    r = len(arr)
+    while (l <= r):
+        m = l + ((r - l) // 2)
+        print(m)
+        res = (x == arr[m])
+        print(res)
+        # Check if x is present at mid
+        if (res == 0):
+            return m - 1
+ 
+        # If x greater, ignore left half
+        if (res > 0):
+            l = m + 1
+ 
+        # If x is smaller, ignore right half
+        else:
+            r = m - 1
+ 
+    return -1
+
+
+
+
+
+
+
 #  Venues
 #  ----------------------------------------------------------------
+
 
 @app.route('/venues')
 def venues():
@@ -122,37 +187,87 @@ def venues():
   # sort them in an increasing order
 
 
-
-  # to have a unique set of the locations
-#  theLocations = set()
-
-  # bring all the data of the venues
-#  theVenues = db.session.query(Venue).all()
-
-  # where we will store the data we will be sending to the frontend
-#  data = []
-
-  # 1- I will save the locations inside the set
-  # 2- I will then save the unique locations inside data to prepare it for receiving the venues
-  # 3- I will 
+  theVenues = db.session.query(Venue).all()
+  data = []
+  statesCovered = []
+  statesCovered.append((theVenues[0].state + theVenues[0].city).lower())
+  print(statesCovered)
+  print((theVenues[0].state + theVenues[0].city).lower())
+  print(theVenues)
 
 
 
-#  for theVenue in theVenues:
 
-#      theLocations.add({
-#        "city": theVenue.city,
-#        "state": theVenue.state
-#      })     
+  # in this loop we will insert uniquely the states and cities only
+  z = 0 
+  for z in range(len(theVenues)):
+
+    result = 0
+    if(z == 0):
+      result = -1
+    else:
+      result = linearsearch(statesCovered, (theVenues[z].state + theVenues[z].city).lower())
+      
 
 
-#  for theLocation in theLocations:
-#      data.append({
-#        'city': 
-#      })
-    
+    print(result)
+    print(statesCovered)
+    print((theVenues[z].state + theVenues[z].city).lower())
+    print('first loop 1')
+    if (result == -1):
 
-  data=[{
+      if(z != 0):
+        statesCovered.append((theVenues[z].state + theVenues[z].city).lower())
+
+      print('first loop 2')
+      # in this loop we will go through all the venues and add the
+      # venues in which the current state and city names are matched with them
+      x = 0
+      for x in range(len(theVenues)):
+
+        print('second loop 1')
+
+        if (statesCovered[-1] == (theVenues[x].state + theVenues[x].city).lower()):
+          print('second loop 2')
+          data.append({
+            "city": theVenues[x].city,
+            "state": theVenues[x].state,
+            "venues": []
+          })
+
+          # in this loop we will insert all the venues of the same city/state
+          y = 0
+          for y in range(len(theVenues)):
+            print('third loop 1')
+
+            if (statesCovered[-1] == (theVenues[y].state + theVenues[y].city).lower()):
+              
+              print('third loop 2')
+
+              upcoming_shows_count = 0
+              
+              for show in theVenues[y].shows:
+                print('forth loop 1')
+
+                if (show.start_time > datetime.today()):
+                  upcoming_shows_count += 1
+
+              data[-1]["venues"].append({
+                "id": theVenues[y].id,
+                "name": theVenues[y].name,
+                "num_upcoming_shows": upcoming_shows_count,
+              })
+            
+            y += 1
+        x += 1
+
+
+    z +=1
+  print(data)
+
+
+  # OLD (IGNORE)
+  data2=[{
     "city": "San Francisco",
     "state": "CA",
     "venues": [{
@@ -173,28 +288,67 @@ def venues():
       "num_upcoming_shows": 0,
     }]
   }]
+
   return render_template('pages/venues.html', areas=data);
+
+
+
+
+
+
+
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
+  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.[WORKING ON]
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-
 
   # take the input and search for it in the database using LIKE (but in alchemy)
   # return data with array of results (objects of venues)
 
-  
+  searchTerm = request.form.get('searchTerm', '')
+  resData = Venue.query.filter(Venue.name.like('%' + searchTerm + '%'))
+  data = []
+
+  for res in resData:
+    upcoming_shows_count = 0
+    x = 0
+
+    for x in range(len(res.shows)):
+      if res.shows[x].start_time > datetime.today():
+        upcoming_shows_count += 1 
+      x += 1
+
+    data.append({
+      "id": res.id,
+      "name": res.name,
+      "num_upcoming_shows": upcoming_shows_count
+    })
+
   response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
+    "count": resData.count(),
+    "data": data
   }
+  print(response)
+#  response={
+#    "count": 1,
+#    "data": [{
+#      "id": 2,
+#      "name": "The Dueling Pianos Bar",
+#      "num_upcoming_shows": 0,
+#    }]
+#  }
+
+
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
+
+
+
+
+
+
+
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
@@ -287,6 +441,11 @@ def show_venue(venue_id):
   data = list(filter(lambda d: d['id'] == venue_id, [data1, data2, data3]))[0]
   return render_template('pages/show_venue.html', venue=data)
 
+
+
+
+
+
 #  Create Venue
 #  ----------------------------------------------------------------
 
@@ -296,10 +455,15 @@ def create_venue_form():
   return render_template('forms/new_venue.html', form=form)
 
 
+
+
+
+
+
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion [Question]
+  # TODO: insert form data as a new Venue record in the db, instead [DONE]
+  # TODO: modify data to be the data object returned from db insertion [DONE]
 
   # extract data [DON E]
   # validate [DON E]
@@ -366,6 +530,11 @@ def create_venue_submission():
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
   return render_template('pages/home.html')
 
+
+
+
+
+
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using[DONE]
@@ -377,6 +546,7 @@ def delete_venue(venue_id):
     Venue.query.filter_by(id=venueId).delete()
     db.session.commit()
   except:
+    print(sys.exc_info())
     db.session.rollback()
   finally:    
     db.session.close()
@@ -385,6 +555,15 @@ def delete_venue(venue_id):
   # clicking that button delete it from the db then redirect the user to the homepage
   
   return None #jsonify({"success": True}) [complete]
+
+
+
+
+
+
+
+
+
 
 #  Artists
 #  ----------------------------------------------------------------
@@ -403,6 +582,12 @@ def artists():
   }]
   return render_template('pages/artists.html', artists=data)
 
+
+
+
+
+
+
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
   # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
@@ -417,6 +602,12 @@ def search_artists():
     }]
   }
   return render_template('pages/search_artists.html', results=response, search_term=request.form.get('search_term', ''))
+
+
+
+
+
+
 
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
@@ -496,6 +687,13 @@ def show_artist(artist_id):
   data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
   return render_template('pages/show_artist.html', artist=data)
 
+
+
+
+
+
+
+
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
@@ -517,6 +715,10 @@ def edit_artist(artist_id):
   # TODO: populate form with fields from artist with ID <artist_id>
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
+
+
+
+
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
   # TODO: take values from the form submitted, and update existing
@@ -524,30 +726,68 @@ def edit_artist_submission(artist_id):
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
+
+
+
+
+
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue={
-    "id": 1,
-    "name": "The Musical Hop",
-    "genres": ["Jazz", "Reggae", "Swing", "Classical", "Folk"],
-    "address": "1015 Folsom Street",
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "123-123-1234",
-    "website": "https://www.themusicalhop.com",
-    "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talent": True,
-    "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
-    "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
+  venueData = Venue.query.get(venue_id)
+  print('hiiiiii')
+  print(venueData.seeking_talent)
+
+  venue = {
+    "id": venueData.id,
+    "name": venueData.name,
+    "genres": venueData.genres,
+    "address": venueData.address,
+    "city": venueData.city,
+    "state": venueData.state,
+    "phone": venueData.phone,
+    "website": venueData.website_link,
+    "facebook_link": venueData.facebook_link,
+    "seeking_talent": venueData.seeking_talent,
+    "seeking_description": venueData.seeking_description,
+    "image_link": venueData.image_link
   }
-  # TODO: populate form with values from venue with ID <venue_id>
+  # TODO: populate form with values from venue with ID <venue_id> [TEST]
   return render_template('forms/edit_venue.html', form=form, venue=venue)
+
+
+
+
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
+  # venue record with ID <venue_id> using the new attributes[TEST]
+
+  venue = Venue.query.get(venue_id)
+
+  print(request.form['seeking_talent'])
+
+  venue.name = request.form['name']
+  venue.genres = request.form['genres']
+  venue.address = request.form['address']
+  venue.city = request.form['city']
+  venue.state = request.form['state']
+  venue.phone = request.form['phone']
+  venue.facebook_link = request.form['facebook_link']
+  venue.seeking_talent = True if request.form['seeking_talent'] == 'y' else False
+  venue.seeking_description = request.form['seeking_description']
+  venue.image_link = request.form['image_link']
+
+  try:
+    db.session.commit()
+  except:
+    print("problem occured")
+    print(sys.exc_info())
+    db.session.rollback()
+  finally:
+    db.session.close()
+
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist
@@ -583,7 +823,6 @@ def create_artist_submission():
   artist = Artist(name = name,
                     city = city,
                     state = state,
-                    state = state,
                     phone = phone,
                     image_link = image_link,
                     genres = genres,
@@ -598,6 +837,7 @@ def create_artist_submission():
         db.session.commit()
   except:
         print("problem occured")
+        print(sys.exc_info())
         error = True
         db.session.rollback()
   finally:
@@ -625,11 +865,26 @@ def create_artist_submission():
 def shows():
   # displays list of shows at /shows
   # TODO: replace with real venues data.
-  #       num_shows should be aggregated based on number of upcoming shows per venue.
+  #       num_shows should be aggregated based on number of upcoming shows per venue.[DONE]
   
+  current_date = datetime.today()
+
+  shows = db.session.query(Show).filter(Show.start_time > current_date).all()
+
+  data=[]
+
+  for show in shows:
+    data.append({
+    "venue_id": show.venue_id,
+    "venue_name": show.venue.name,
+    "artist_id": show.artist_id,
+    "artist_name": show.artist.name,
+    "artist_image_link": show.artist.image_link,
+    "start_time": show.start_time.strftime("%m/%d/%Y, %H:%M:%S")
+    })
   
-  
-  data=[{
+  #OLD SOLUTION
+  data2=[{
     "venue_id": 1,
     "venue_name": "The Musical Hop",
     "artist_id": 4,
@@ -665,6 +920,7 @@ def shows():
     "artist_image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
     "start_time": "2035-04-15T20:00:00.000Z"
   }]
+
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -683,16 +939,26 @@ def create_show_submission():
   artist_id = formS.artist_id.data
   venue_id = formS.venue_id.data
   start_time = formS.start_time.data
+  
+  #.date().strftime('%m/%d/%y %H:%M:%S')
+  
+  #datetime.strptime('2021/12/22 12:22:23', '%m/%d/%y %H:%M:%S')
 
-  show = Show(artist_id = artist_id,
-              venue_id = venue_id,
+  
+  show = Show(artist_id = int(artist_id),
+              venue_id = int(venue_id),
               start_time = start_time)
 
+  error = False
+  print('show:')
+  print(show)
+  print(show.start_time)
   try:
         db.session.add(show)
         db.session.commit()
   except:
         print("problem occured")
+        print(sys.exc_info())
         error = True
         db.session.rollback()
   finally:
