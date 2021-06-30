@@ -673,7 +673,7 @@ def edit_artist(artist_id):
   artist={
     "id": artistData.id,
     "name": artistData.name,
-    "genres": artistData.genres.split(","),
+    "genres": artistData.genres,
     "city": artistData.city,
     "state": artistData.state,
     "phone": artistData.phone,
@@ -695,7 +695,7 @@ def edit_artist(artist_id):
   form.seeking_description.data = artistData.seeking_description
   form.image_link.data = artistData.image_link
 
-  # TODO: populate form with fields from artist with ID <artist_id> [FIX - GENRES]
+  # TODO: populate form with fields from artist with ID <artist_id> [DONE]
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
@@ -704,18 +704,18 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing [FIX - SEEKING VENUE and GENRES]
+  # TODO: take values from the form submitted, and update existing [DONE]
   # artist record with ID <artist_id> using the new attributes
 
   artist = db.session.query(Artist).filter_by(id=artist_id).first()
 
   artist.name = request.form['name']
-  artist.genres = ",".join(request.form['genres'])
+  artist.genres = request.form['genres']
   artist.city = request.form['city']
   artist.state = request.form['state']
   artist.phone = request.form['phone']
   artist.facebook_link = request.form['facebook_link']
-  artist.seeking_venue = True if request.form['seeking_venue'] == 'y' else False
+  artist.seeking_venue = True
   artist.seeking_description = request.form['seeking_description']
   artist.website_link = request.form['website_link']
   artist.image_link = request.form['image_link']
@@ -744,7 +744,7 @@ def edit_venue(venue_id):
   venue = {
     "id": venueData.id,
     "name": venueData.name,
-    "genres": ",".join(venueData.genres),
+    "genres": venueData.genres,
     "address": venueData.address,
     "city": venueData.city,
     "state": venueData.state,
@@ -768,7 +768,7 @@ def edit_venue(venue_id):
   form.image_link.data = venueData.image_link
 
 
-  # TODO: populate form with values from venue with ID <venue_id> [FIX - SEEKING_TALENT and GENRES]
+  # TODO: populate form with values from venue with ID <venue_id> [DONE]
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 
@@ -777,19 +777,19 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing [FIX - GENRES]
+  # TODO: take values from the form submitted, and update existing [DONE]
   # venue record with ID <venue_id> using the new attributes
 
   venue = Venue.query.get(venue_id)
 
   venue.name = request.form['name']
-  venue.genres = ",".join(request.form['genres'])
+  venue.genres = request.form['genres']
   venue.address = request.form['address']
   venue.city = request.form['city']
   venue.state = request.form['state']
   venue.phone = request.form['phone']
   venue.facebook_link = request.form['facebook_link']
-  venue.seeking_talent = True if request.form['seeking_talent'] == 'y' else False
+  venue.seeking_talent = True
   venue.seeking_description = request.form['seeking_description']
   venue.image_link = request.form['image_link']
 
