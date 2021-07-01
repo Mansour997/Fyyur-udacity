@@ -575,17 +575,20 @@ def edit_artist_submission(artist_id):
   # artist record with ID <artist_id> using the new attributes
 
   artist = db.session.query(Artist).filter_by(id=artist_id).first()
+  
+  formA = ArtistForm(request.form)
 
-  artist.name = request.form['name']
-  artist.genres = request.form['genres']
-  artist.city = request.form['city']
-  artist.state = request.form['state']
-  artist.phone = request.form['phone']
-  artist.facebook_link = request.form['facebook_link']
+
+  artist.name = formA.name.data
+  artist.genres = ','.join(formA.genres.data)
+  artist.city = formA.city.data
+  artist.state = formA.state.data
+  artist.phone = formA.phone.data
+  artist.facebook_link = formA.facebook_link.data
   artist.seeking_venue = True
-  artist.seeking_description = request.form['seeking_description']
-  artist.website_link = request.form['website_link']
-  artist.image_link = request.form['image_link']
+  artist.seeking_description = formA.seeking_description.data
+  artist.website_link = formA.website_link.data
+  artist.image_link = formA.image_link.data
 
   try:
     db.session.commit()
@@ -611,7 +614,7 @@ def edit_venue(venue_id):
   venue = {
     "id": venueData.id,
     "name": venueData.name,
-    "genres": venueData.genres,
+    "genres": venueData.genres.split(','),
     "address": venueData.address,
     "city": venueData.city,
     "state": venueData.state,
@@ -649,16 +652,19 @@ def edit_venue_submission(venue_id):
 
   venue = Venue.query.get(venue_id)
 
-  venue.name = request.form['name']
-  venue.genres = request.form['genres']
-  venue.address = request.form['address']
-  venue.city = request.form['city']
-  venue.state = request.form['state']
-  venue.phone = request.form['phone']
-  venue.facebook_link = request.form['facebook_link']
+  form = VenueForm(request.form)
+
+  venue.name = form.name.data
+  venue.genres = ','.join(form.genres.data)
+  venue.address = form.address.data
+  venue.city = form.city.data
+  venue.state = form.state.data
+  venue.phone = form.phone.data
+  venue.website_link = form.website_link.data
+  venue.facebook_link = form.facebook_link.data
   venue.seeking_talent = True
-  venue.seeking_description = request.form['seeking_description']
-  venue.image_link = request.form['image_link']
+  venue.seeking_description = form.seeking_description.data
+  venue.image_link = form.image_link.data
 
   try:
     db.session.commit()
