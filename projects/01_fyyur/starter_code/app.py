@@ -130,7 +130,7 @@ def venues():
   statesCovered = []
   statesCovered.append((theVenues[0].state + theVenues[0].city).lower())
 
-
+  # can use: db.session.query(Venue).distinct(Venue.city, Venue.state).all()
 
 
   # in this loop we will insert uniquely the states and cities only
