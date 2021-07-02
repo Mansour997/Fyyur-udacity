@@ -246,10 +246,12 @@ def show_venue(venue_id):
   # TODO: replace with real venue data from the venues table, using venue_id [DONE]
 
   venue = db.session.query(Venue).filter_by(id=venue_id).first()
+  all_shows =  db.session.query(Show).join(Show.venue).filter(Show.venue_id==venue_id).all()
+
   past_shows = []
   upcoming_shows = []
 
-  for show in venue.shows:
+  for show in all_shows:
     temp_show = {
         'artist_id': show.artist_id,
         'artist_name': show.artist.name,
