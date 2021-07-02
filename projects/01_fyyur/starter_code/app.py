@@ -465,11 +465,12 @@ def show_artist(artist_id):
   
   
   artist = db.session.query(Artist).filter_by(id=artist_id).first()
+  all_shows =  db.session.query(Show).join(Show.artist).filter(Show.artist_id==artist_id).all()
   past_shows = []
   upcoming_shows = []
 
 
-  for show in artist.shows:
+  for show in all_shows:
     temp_show = {
         'artist_id': show.artist_id,
         'artist_name': show.artist.name,
