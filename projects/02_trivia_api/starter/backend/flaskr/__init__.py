@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
-from models import setup_db, Question, Category
+from models import db, setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
@@ -27,6 +27,16 @@ def create_app(test_config=None):
   for all available categories.
   '''
 
+  @app.rout('/categories')
+  def categories():
+    categories = db.session.query(Category).all()
+    formatted_categories = [Category.format2() for category in categories]
+
+    # in case the below did not print the proper output, do a for loop for the formatted_categories and fix them
+    formatted = {
+    'categories': formatted_categories}
+
+    return jsonify(formatted)
 
   '''
   @TODO: 
