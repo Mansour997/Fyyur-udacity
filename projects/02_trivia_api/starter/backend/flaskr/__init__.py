@@ -27,7 +27,7 @@ def create_app(test_config=None):
   for all available categories.
   '''
 
-  @app.rout('/categories')
+  @app.route('/categories')
   def categories():
     categories = db.session.query(Category).all()
     formatted_categories = [Category.format2() for category in categories]
